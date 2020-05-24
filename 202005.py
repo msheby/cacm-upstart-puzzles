@@ -129,14 +129,11 @@ def get_chiming_sequence(n=0, b=10):
     base = int(b)
     if base < 1:
         raise ValueError
-    saw_zero = False
-    representation = []
-    if number == 0:
-        representation.append(0)
-        saw_zero = True
-    elif base == 1:
-        representation.extend([1 for _ in range(number)])
+    if base == 1:
+        return [1 for _ in range(number)]
     else:
+        saw_zero = True
+        representation = []
         while number:
             digit = number % base
             if digit == 0:
@@ -147,8 +144,6 @@ def get_chiming_sequence(n=0, b=10):
                 saw_zero = False
             representation.append(digit)
             number //= base
-    if representation[0] == 0:
-        return None
     return representation[::-1]
 
 
@@ -175,51 +170,61 @@ def get_minimum_average_duration_sequences(k=1):
     Parameters
     ----------
     k : int (default 1)
-        Number of different tones in the bell towers.
+        Number of different tones in every cathedral.
     """
     base = int(k) + 1
-    if base < 2:
+    if base < 1:
         raise ValueError
-    ndigits = 0
     chiming_sequences = []
-    while len(chiming_sequences) < NUM_TIME_SEQUENCES:
-        ndigits += 1
-        maximum = base ** ndigits
-        if maximum < NUM_TIME_SEQUENCES:
-            # don't waste time
-            continue
-        chiming_sequences = [chiming_sequence for chiming_sequence in
-                             [get_chiming_sequence(n, base)
-                              for n in range(maximum)]
-                             if chiming_sequence]
+    start = 0
+    if base == 1:
+        # special case; return the unary sequences
+        end = NUM_TIME_SEQUENCES + 1
+        chiming_sequences.extend([chiming_sequence for chiming_sequence in
+                                  [get_chiming_sequence(n, base)
+                                   for n in range(start, end)]
+                                  if chiming_sequence])
+    else:
+        end = 1
+        while len(chiming_sequences) < NUM_TIME_SEQUENCES:
+            chiming_sequences.extend([chiming_sequence for chiming_sequence in
+                                      [get_chiming_sequence(n, base)
+                                       for n in range(start, end)]
+                                      if chiming_sequence])
+            start = end
+            end *= base
     return chiming_sequences[:NUM_TIME_SEQUENCES]
 
 
-def get_average_duration(sequences=None):
+def get_average_duration(chiming_sequences=None):
     """
     Given a list of chiming sequences,
     return their average duration in seconds.
+
+    >>> get_average_duration(TEST_CHIMING_SEQUENCES)
+    Fraction(103, 12)
     """
-    return fractions.Fraction(sum(map(get_duration, sequences)),
+    if chiming_sequences is None:
+        chiming_sequences = []
+    return fractions.Fraction(sum(map(get_duration, chiming_sequences)),
                               NUM_TIME_SEQUENCES)
 
 
 def upstart_202005():
     """Solve the optimal chimes' upstart puzzles."""
     solution = []
-    for k in range(1, NUM_TIME_SEQUENCES + 1):
-        sequences = get_minimum_average_duration_sequences(k)
-        duration = get_average_duration(sequences)
+    for k in range(NUM_TIME_SEQUENCES + 1):
+        chiming_sequences = get_minimum_average_duration_sequences(k)
+        average_duration = get_average_duration(chiming_sequences)
         solution.append({"k": k,
                          "minimum_average_duration": {
-                             "numerator": duration.numerator,
-                             "denominator": duration.denominator},
-                         "chiming_sequences": sequences})
+                             "numerator": average_duration.numerator,
+                             "denominator": average_duration.denominator},
+                         "chiming_sequences": chiming_sequences})
     return solution
 
 
 def main():
-    assert(str(get_average_duration(TEST_CHIMING_SEQUENCES)) == "103/12")
     solution = upstart_202005()
     print("k\tminimum_average_duration_in_seconds")
     for d in solution:
