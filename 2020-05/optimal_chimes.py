@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 # coding=UTF-8
+
+"""
+Find a solution for
+<https://cacm.acm.org/magazines/2020/5/244323-optimal-chimes>.
+"""
+
 from __future__ import print_function
 import fractions
 
@@ -211,7 +217,14 @@ def get_average_duration(chiming_sequences=None):
 
 
 def upstart_202005():
-    """Solve the optimal chimes' upstart puzzles."""
+    """
+    Solve the optimal chimes' upstart puzzles.
+
+    >>> get_average_duration(get_minimum_average_duration_sequences(0))
+    Fraction(97, 2)
+    >>> get_average_duration(get_minimum_average_duration_sequences(96))
+    Fraction(1, 1)
+    """
     solution = []
     for k in range(NUM_TIME_SEQUENCES + 1):
         chiming_sequences = get_minimum_average_duration_sequences(k)
