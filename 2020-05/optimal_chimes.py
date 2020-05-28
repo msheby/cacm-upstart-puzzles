@@ -158,7 +158,7 @@ def get_duration(chiming_sequence):
     duration = 0
     saw_nonzero = False
     for digit in chiming_sequence:
-        if digit != 0:
+        if digit:
             duration += 1
             saw_nonzero = True
         else:
@@ -182,24 +182,13 @@ def get_minimum_average_duration_sequences(k=1):
     if base < 1:
         raise ValueError
     chiming_sequences = []
-    start = 0
-    if base == 1:
-        # special case; return the unary sequences
-        end = NUM_TIME_SEQUENCES + 1
-        chiming_sequences.extend([chiming_sequence for chiming_sequence in
-                                  [get_chiming_sequence(n, base)
-                                   for n in range(start, end)]
-                                  if chiming_sequence])
-    else:
-        end = 1
-        while len(chiming_sequences) < NUM_TIME_SEQUENCES:
-            chiming_sequences.extend([chiming_sequence for chiming_sequence in
-                                      [get_chiming_sequence(n, base)
-                                       for n in range(start, end)]
-                                      if chiming_sequence])
-            start = end
-            end *= base
-    return chiming_sequences[:NUM_TIME_SEQUENCES]
+    n = 0
+    while len(chiming_sequences) < NUM_TIME_SEQUENCES:
+        chiming_sequence = get_chiming_sequence(n, base)
+        n += 1
+        if chiming_sequence:
+            chiming_sequences.append(chiming_sequence)
+    return chiming_sequences
 
 
 def get_average_duration(chiming_sequences=None):
