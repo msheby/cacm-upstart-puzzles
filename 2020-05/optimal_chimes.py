@@ -7,6 +7,7 @@ Find a solution for
 """
 
 from __future__ import print_function
+import itertools
 import fractions
 
 NUM_TIME_SEQUENCES = 24 * 4
@@ -181,14 +182,12 @@ def get_minimum_average_duration_sequences(k=1):
     base = int(k) + 1
     if base < 1:
         raise ValueError
-    chiming_sequences = []
     n = 0
-    while len(chiming_sequences) < NUM_TIME_SEQUENCES:
+    while True:
         chiming_sequence = get_chiming_sequence(n, base)
         n += 1
         if chiming_sequence:
-            chiming_sequences.append(chiming_sequence)
-    return chiming_sequences
+            yield chiming_sequence
 
 
 def get_average_duration(chiming_sequences=None):
@@ -200,9 +199,9 @@ def get_average_duration(chiming_sequences=None):
     Fraction(103, 12)
     """
     if chiming_sequences is None:
-        chiming_sequences = []
+        chiming_sequences = [[1]]
     return fractions.Fraction(sum(map(get_duration, chiming_sequences)),
-                              NUM_TIME_SEQUENCES)
+                              len(chiming_sequences))
 
 
 def upstart_202005():
@@ -216,7 +215,8 @@ def upstart_202005():
     """
     solution = []
     for k in range(NUM_TIME_SEQUENCES + 1):
-        chiming_sequences = get_minimum_average_duration_sequences(k)
+        chiming_sequences = list(itertools.islice(get_minimum_average_duration_sequences(k),
+                                                  NUM_TIME_SEQUENCES))
         average_duration = get_average_duration(chiming_sequences)
         solution.append({"k": k,
                          "minimum_average_duration": {
