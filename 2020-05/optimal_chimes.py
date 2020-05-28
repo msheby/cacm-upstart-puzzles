@@ -151,7 +151,8 @@ def get_chiming_sequence(n=0, b=10):
                 saw_zero = False
             representation.append(digit)
             number //= base
-    return representation[::-1]
+    representation.reverse()
+    return representation
 
 
 def get_duration(chiming_sequence):
