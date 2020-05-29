@@ -114,62 +114,6 @@ TEST_CHIMING_SEQUENCES = [
 ]
 
 
-def get_chiming_sequence(n=0, b=10):
-    """
-    Given a radix *n* and a base *b*,
-    create a list containing *n* expressed in base-*b*.
-    If the least-significant digit would be zero or
-    if there would be two consecutive zeroes,
-    return None as it is not a valid chiming sequence.
-    Otherwise, return the list.
-
-    Parameters
-    ----------
-    n : int (default 0)
-        A nonnegative integer.
-    b : int (default 10)
-        A nonnegative integer radix.
-    """
-    number = int(n)
-    if number < 0:
-        raise ValueError
-    base = int(b)
-    if base < 1:
-        raise ValueError
-    if base == 1:
-        return [1 for _ in range(number)]
-    else:
-        saw_zero = True
-        representation = []
-        while number:
-            digit = number % base
-            if digit == 0:
-                if saw_zero:
-                    return None
-                saw_zero = True
-            else:
-                saw_zero = False
-            representation.append(digit)
-            number //= base
-    representation.reverse()
-    return representation
-
-
-def get_duration(chiming_sequence):
-    """Given a chiming sequence, return its duration in seconds."""
-    duration = 0
-    saw_nonzero = False
-    for digit in chiming_sequence:
-        if digit:
-            duration += 1
-            saw_nonzero = True
-        else:
-            if saw_nonzero:
-                duration += 1
-            saw_nonzero = False
-    return duration
-
-
 def get_minimum_average_duration_sequences(k=1):
     """
     Find a minimum average duration uniquely decodable code
@@ -183,15 +127,33 @@ def get_minimum_average_duration_sequences(k=1):
     base = int(k) + 1
     if base < 1:
         raise ValueError
-    n = 0
+    n = 1
     while True:
-        chiming_sequence = get_chiming_sequence(n, base)
+        if base == 1:
+            yield [1 for _ in range(n)]
+        else:
+            saw_zero = True
+            number = n
+            representation = []
+            while number:
+                digit = number % base
+                if digit == 0:
+                    if saw_zero:
+                        n += 1
+                        number = n
+                        del representation[:]
+                        continue
+                    saw_zero = True
+                else:
+                    saw_zero = False
+                representation.append(digit)
+                number //= base
+            representation.reverse()
+            yield representation
         n += 1
-        if chiming_sequence:
-            yield chiming_sequence
 
 
-def get_average_duration(chiming_sequences=None):
+def get_average_duration(chiming_sequences):
     """
     Given a list of chiming sequences,
     return their average duration in seconds.
@@ -199,9 +161,7 @@ def get_average_duration(chiming_sequences=None):
     >>> get_average_duration(TEST_CHIMING_SEQUENCES)
     Fraction(103, 12)
     """
-    if chiming_sequences is None:
-        chiming_sequences = [[1]]
-    return fractions.Fraction(sum(map(get_duration, chiming_sequences)),
+    return fractions.Fraction(sum(map(len, chiming_sequences)),
                               len(chiming_sequences))
 
 
@@ -216,14 +176,15 @@ def upstart_202005():
     """
     solution = []
     for k in range(NUM_TIME_SEQUENCES + 1):
-        chiming_sequences = list(itertools.islice(get_minimum_average_duration_sequences(k),
-                                                  NUM_TIME_SEQUENCES))
+        chiming_sequences = tuple(itertools.islice(
+            get_minimum_average_duration_sequences(k),
+            NUM_TIME_SEQUENCES))
         average_duration = get_average_duration(chiming_sequences)
-        solution.append({"k": k,
+        solution.append({"chiming_sequences": chiming_sequences,
+                         "k": k,
                          "minimum_average_duration": {
-                             "numerator": average_duration.numerator,
-                             "denominator": average_duration.denominator},
-                         "chiming_sequences": chiming_sequences})
+                             "denominator": average_duration.denominator,
+                             "numerator": average_duration.numerator}})
     return solution
 
 
